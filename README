@@ -1,8 +1,0 @@
-This is my root workspace that I use to build all the software I've
-written, patched, or simply want to build myself. All of my builds
-use [bazel][0]. My own projects are bazel-enabled, and have
-their own WORKSPACE files; you can build them without this
-repo. However, for binaries that have cross-project or external
-dependencies, my published binaries are built from this workspace.
-
-[0]: https://bazel.build/

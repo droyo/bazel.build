@@ -1,0 +1,7 @@
+# Builds the GNU compiler collection.  Requires that the host machine
+# has an existing C++ compiler and make to bootstrap with. This BUILD
+# file was written with the help of
+# https://github.com/bazelbuild/bazel/wiki/Building-with-a-custom-toolchain
+# 
+# Also remember that the compiler used for bootstrapping should be secure:
+# http://wiki.c2.com/?TheKenThompsonHack

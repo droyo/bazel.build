@@ -1,0 +1,21 @@
+# Builds GNU MPC, multi-precision floating-point math library. It is
+# a prerequisite for GCC.
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+  name = "sources",
+  srcs = glob(["src/*.c"]),
+)
+
+filegroup(
+  name = "includes",
+  srcs = ["src/mpc-impl.h", "src/mpc.h"],
+)
+
+cc_library(
+  name = "libmpc",
+  hdrs = ["src/mpc.h"],
+  srcs = [":sources", ":includes"],
+  strip_include_prefix = "src",
+)

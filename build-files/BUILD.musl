@@ -1,0 +1,22 @@
+# Builds musl, a modern, clean libc implementation.
+filegroup(
+    name = "headers",
+    srcs = glob([
+      "includes/*.h",
+    ]),
+)
+
+filegroup(
+    name = "internal_headers",
+    srcs = glob([
+      "src/**/*.h",
+    ]),
+)
+
+cc_library(
+    name = "libc",
+    srcs = glob([
+      "src/**/*.c",
+    ])
+    hdrs = [":internal_headers", ":headers"],
+)

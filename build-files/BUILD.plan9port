@@ -1,0 +1,651 @@
+# Builds Plan 9 from user space
+package(default_visibility = ["//visibility:private"])
+
+load("@build_tools//:plan9port.bzl", "p9p_library", "p9p_binary")
+
+p9p_library(
+    name = "libsec",
+    hdrs = ["include/libsec.h"],
+    deps = [
+      ":lib9",
+      ":libauth",
+      ":libbio",
+      ":libmp",
+    ],
+    srcs = [
+      "src/libsec/port/aes.c",
+      "src/libsec/port/blowfish.c",
+      "src/libsec/port/decodepem.c",
+      "src/libsec/port/des3CBC.c",
+      "src/libsec/port/des3ECB.c",
+      "src/libsec/port/des.c",
+      "src/libsec/port/desCBC.c",
+      "src/libsec/port/desECB.c",
+      "src/libsec/port/desmodes.c",
+      "src/libsec/port/dsaalloc.c",
+      "src/libsec/port/dsagen.c",
+      "src/libsec/port/dsaprimes.c",
+      "src/libsec/port/dsaprivtopub.c",
+      "src/libsec/port/dsasign.c",
+      "src/libsec/port/dsaverify.c",
+      "src/libsec/port/egalloc.c",
+      "src/libsec/port/egdecrypt.c",
+      "src/libsec/port/egencrypt.c",
+      "src/libsec/port/eggen.c",
+      "src/libsec/port/egprivtopub.c",
+      "src/libsec/port/egsign.c",
+      "src/libsec/port/egverify.c",
+      "src/libsec/port/fastrand.c",
+      "src/libsec/port/genprime.c",
+      "src/libsec/port/genrandom.c",
+      "src/libsec/port/gensafeprime.c",
+      "src/libsec/port/genstrongprime.c",
+      "src/libsec/port/hmac.c",
+      "src/libsec/port/md4.c",
+      "src/libsec/port/md5block.c",
+      "src/libsec/port/md5.c",
+      "src/libsec/port/md5pickle.c",
+      "src/libsec/port/nfastrand.c",
+      "src/libsec/port/os.h",
+      "src/libsec/port/prng.c",
+      "src/libsec/port/probably_prime.c",
+      "src/libsec/port/rc4.c",
+      "src/libsec/port/readcert.c",
+      "src/libsec/port/rsaalloc.c",
+      "src/libsec/port/rsadecrypt.c",
+      "src/libsec/port/rsaencrypt.c",
+      "src/libsec/port/rsafill.c",
+      "src/libsec/port/rsagen.c",
+      "src/libsec/port/rsaprivtopub.c",
+      "src/libsec/port/sha1block.c",
+      "src/libsec/port/sha1.c",
+      "src/libsec/port/sha1pickle.c",
+      "src/libsec/port/smallprimes.c",
+      "src/libsec/port/thumb.c",
+      "src/libsec/port/tlshand.c",
+      "src/libsec/port/x509.c",
+    ],
+)
+
+p9p_library(
+    name = "lib9",
+    hdrs = [
+      "include/fcall.h",
+      "include/fmt.h",
+      "include/lib9.h",
+      "include/libc.h",
+      "include/u.h",
+      "include/utf.h",
+    ],
+    srcs = glob(
+      include=[
+        "src/lib9/**/*.c",
+        "src/lib9/**/*.h",
+      ],
+      exclude=[
+        "src/lib9/debug*.c",
+        "src/lib9/fmt/dorfmt.c",
+        "src/lib9/fmt/errfmt.c",
+        "src/lib9/fmt/fmtlock.c",
+        "src/lib9/fork.c",
+        "src/lib9/getcallerpc-*.c",
+        "src/lib9/lock.c",
+        "src/lib9/_p9translate.c",
+        "src/lib9/priv.c",
+        "src/lib9/udp.c",
+        "**/test*.c",
+      ]
+    ) + [
+      "src/lib9/getcallerpc-x86_64.c",
+      "src/libsec/port/des.c",
+      "src/libsec/port/os.h",
+      "include/auth.h",
+      "include/ip.h",
+      "include/libsec.h",
+    ],
+)
+
+p9p_library(
+    name = "libthread",
+    deps = [
+      ":lib9",
+    ],
+    copts = ["-include", "pthread.h"],
+    linkopts = ["-lpthread"],
+    srcs = [
+      "src/libthread/pthread.c",
+      "src/libthread/channel.c",
+      "src/libthread/daemonize.c",
+      "src/libthread/exec.c",
+      "src/libthread/ioproc.c",
+      "src/libthread/iorw.c",
+      "src/libthread/ref.c",
+      "src/libthread/thread.c",
+      "src/libthread/wait.c",
+      "src/libthread/ioproc.h",
+      "src/libthread/threadimpl.h",
+      "src/libthread/x86_64-ucontext.h",
+    ],
+)
+
+p9p_library(
+    name = "lib9p",
+    deps = [
+      ":lib9",
+      ":libthread",
+    ],
+    srcs = glob(
+      include=[
+        "src/lib9p/*.c",
+        "src/lib9p/*.h",
+      ],
+      exclude=[
+        "src/lib9p/ftest.c",
+        "src/lib9p/post.c",
+        "src/lib9p/ramfs.c",
+      ]
+    ),
+)
+
+p9p_library(
+    name = "lib9pclient",
+    deps = [
+      ":lib9",
+      ":libthread",
+      ":libmux",
+    ],
+)
+
+p9p_library(
+    name = "libacme",
+    deps = [
+      ":lib9",
+      ":libthread",
+      ":lib9pclient",
+    ],
+)
+
+p9p_library(
+    name = "libauth",
+    deps = [
+      ":lib9",
+      ":libndb",
+      ":libbio",
+      ":lib9pclient",
+      ":libauthsrv",
+      ":libthread",
+    ],
+    srcs = glob(
+      include=[
+        "src/libauth/*.c",
+        "src/libauth/*.h",
+      ],
+      exclude=[
+        "src/libauth/amount.c",
+        "src/libauth/auth_chuid.c",
+        "src/libauth/auth_wep.c",
+        "src/libauth/httpauth.c",
+        "src/libauth/login.c",
+        "src/libauth/newns.c",
+        "src/libauth/noworld.c",
+      ]
+    ),
+)
+
+p9p_library(
+    name = "libndb",
+    deps = [
+      ":lib9",
+      ":libbio",
+      ":libip",
+    ],
+    srcs = glob(
+      include=[
+        "src/libndb/*.c",
+        "src/libndb/*.h",
+      ],
+      exclude=[
+        "src/libndb/cs*.c",
+        "src/libndb/test*.c",
+        "src/libndb/dnsquery.c",
+      ]
+    ),
+)
+
+p9p_library(
+    name = "libauthsrv",
+    deps = [
+      ":lib9",
+      ":libndb",
+      ":libbio",
+    ],
+)
+
+p9p_library(
+    name = "libavl",
+    deps = [
+      ":lib9",
+      ":libbio",
+    ],
+)
+
+p9p_library(
+    name = "libbin",
+    deps = [
+      ":lib9",
+    ],
+)
+
+p9p_library(
+    name = "libbio",
+    deps = [
+      ":lib9",
+    ],
+    srcs = glob(
+      include=["src/libbio/**/*.c", "src/libbio/**/*.h"],
+      exclude=["src/libbio/bcat.c"]
+    ),
+)
+
+p9p_library(
+    name = "libmux",
+    deps = [
+      ":lib9",
+      ":libthread",
+    ],
+)
+
+p9p_library(
+    name = "libcomplete",
+    deps = [
+      ":lib9",
+    ],
+)
+
+p9p_library(
+    name = "libdisk",
+    deps = [
+      ":lib9",
+      ":libbio",
+      ":libauth",
+    ],
+    srcs = [
+      "src/libdisk/disk.c",
+      "src/libdisk/proto.c",
+    ],
+)
+
+p9p_library(
+    name = "libdiskfs",
+    deps = [
+      ":lib9",
+      ":libbio",
+      ":libthread",
+      ":libsunrpc",
+      ":libventi",
+    ],
+    srcs = glob(
+      include=["src/libdiskfs/**/*.c", "src/libdiskfs/**/*.h"],
+      exclude=["src/libdiskfs/vfile.c"]
+    ),
+)
+
+p9p_library(
+    name = "libdraw",
+    deps = [
+      ":lib9",
+      ":libthread",
+      ":libmux",
+    ],
+    hdrs = [
+      "include/cursor.h",
+      "include/drawfcall.h",
+      "include/draw.h",
+      "include/event.h",
+      "include/keyboard.h",
+      "include/mouse.h",
+    ],
+    srcs = glob(
+      include=[
+        "src/libdraw/*.c",
+        "src/libdraw/*.h",
+      ],
+      exclude=[
+        "src/libdraw/newwindow.c",
+        "src/libdraw/test.c",
+      ]
+    ),
+)
+
+p9p_library(
+    name = "libflate",
+    deps = [
+      ":lib9",
+    ],
+)
+
+p9p_library(
+    name = "libframe",
+    deps = [
+      ":lib9",
+      ":libdraw",
+    ],
+)
+
+p9p_library(
+    name = "libgeometry",
+    deps = [
+      ":lib9",
+      ":libdraw",
+    ],
+)
+
+p9p_library(
+    name = "libhtml",
+    deps = [
+      ":lib9",
+      ":libdraw",
+    ],
+)
+
+p9p_library(
+    name = "libhttpd",
+    deps = [
+      ":lib9",
+      ":libbin",
+    ],
+)
+
+p9p_library(
+    name = "libip",
+    deps = [
+      ":lib9",
+    ],
+    srcs = [
+      "src/libip/bo.c",
+      "src/libip/classmask.c",
+      "src/libip/eipfmt.c",
+      "src/libip/freeipifc.c",
+      "src/libip/ipaux.c",
+      "src/libip/myetheraddr.c",
+      "src/libip/myipaddr.c",
+      "src/libip/parseether.c",
+      "src/libip/parseip.c",
+      "src/libip/ptclbsum.c",
+      "src/libip/udp.c",
+    ] + [
+      "src/libip/Linux.c",
+    ],
+)
+
+p9p_library(
+    name = "libmach",
+    deps = [
+      ":lib9",
+      ":libbio",
+    ],
+    srcs = [
+      "src/libmach/dwarf.h",
+      "src/libmach/elf.h",
+      "src/libmach/elfcore.h",
+      "src/libmach/macho.h",
+      "src/libmach/stabs.h",
+      "src/libmach/ureg386.h",
+      "src/libmach/uregamd64.h",
+      "src/libmach/uregpower.h",
+      "src/libmach/cmdline.c",
+      "src/libmach/crack.c",
+      "src/libmach/crackelf.c",
+      "src/libmach/crackmacho.c",
+      "src/libmach/dwarf386.c",
+      "src/libmach/dwarfabbrev.c",
+      "src/libmach/dwarfaranges.c",
+      "src/libmach/dwarfcfa.c",
+      "src/libmach/dwarfget.c",
+      "src/libmach/dwarfinfo.c",
+      "src/libmach/dwarfopen.c",
+      "src/libmach/dwarfpc.c",
+      "src/libmach/dwarfpubnames.c",
+      "src/libmach/elf.c",
+      "src/libmach/elfdl386.c",
+      "src/libmach/elfcorefreebsdamd64.c",
+      "src/libmach/elfcorelinux386.c",
+      "src/libmach/frame.c",
+      "src/libmach/fpformat.c",
+      "src/libmach/hexify.c",
+      "src/libmach/ieee.c",
+      "src/libmach/loc.c",
+      "src/libmach/localaddr.c",
+      "src/libmach/mach386.c",
+      "src/libmach/machamd64.c",
+      "src/libmach/macho.c",
+      "src/libmach/machocorepower.c",
+      "src/libmach/machpower.c",
+      "src/libmach/mangle.c",
+      "src/libmach/manglegcc2.c",
+      "src/libmach/manglegcc3.c",
+      "src/libmach/map.c",
+      "src/libmach/regs.c",
+      "src/libmach/stabs.c",
+      "src/libmach/swap.c",
+      "src/libmach/sym.c",
+      "src/libmach/symdwarf.c",
+      "src/libmach/symelf.c",
+      "src/libmach/symmacho.c",
+      "src/libmach/symstabs.c",
+      "src/libmach/ureg386.c",
+    ] + [
+      "src/libmach/Linux.c",
+    ],
+)
+
+p9p_library(
+    name = "libmemdraw",
+    deps = [
+      ":lib9",
+      ":libdraw",
+    ],
+    srcs = glob(
+      include=["src/libmemdraw/*.c", "src/libmemdraw/*.h"],
+      exclude=[
+        "src/libmemdraw/arctest.c",
+        "src/libmemdraw/fill-stub.c",
+        "src/libmemdraw/mkcmap.c",
+        "src/libmemdraw/drawtest.c",
+      ]
+    ),
+)
+
+p9p_library(
+    name = "libmemlayer",
+    deps = [
+      ":lib9",
+      ":libdraw",
+      ":libmemdraw",
+    ],
+)
+
+p9p_library(
+    name = "libmp",
+    srcs = [
+      "include/u.h",
+      "include/libc.h",
+      "include/utf.h",
+      "include/fmt.h",
+      "src/libmp/port/betomp.c",
+      "src/libmp/port/crt.c",
+      "src/libmp/port/dat.h",
+      "src/libmp/port/letomp.c",
+      "src/libmp/port/mpadd.c",
+      "src/libmp/port/mpaux.c",
+      "src/libmp/port/mpcmp.c",
+      "src/libmp/port/mpdigdiv.c",
+      "src/libmp/port/mpdiv.c",
+      "src/libmp/port/mpexp.c",
+      "src/libmp/port/mpextendedgcd.c",
+      "src/libmp/port/mpfactorial.c",
+      "src/libmp/port/mpfmt.c",
+      "src/libmp/port/mpinvert.c",
+      "src/libmp/port/mpleft.c",
+      "src/libmp/port/mpmod.c",
+      "src/libmp/port/mpmul.c",
+      "src/libmp/port/mprand.c",
+      "src/libmp/port/mpright.c",
+      "src/libmp/port/mpsub.c",
+      "src/libmp/port/mptobe.c",
+      "src/libmp/port/mptoi.c",
+      "src/libmp/port/mptole.c",
+      "src/libmp/port/mptoui.c",
+      "src/libmp/port/mptouv.c",
+      "src/libmp/port/mptov.c",
+      "src/libmp/port/mpvecadd.c",
+      "src/libmp/port/mpveccmp.c",
+      "src/libmp/port/mpvecdigmuladd.c",
+      "src/libmp/port/mpvecsub.c",
+      "src/libmp/port/os.h",
+      "src/libmp/port/strtomp.c",
+    ],
+)
+
+p9p_library(
+    name = "libplumb",
+    deps = [
+      ":lib9",
+      ":lib9pclient",
+      ":libdraw",
+    ],
+)
+
+p9p_library(
+    name = "libregexp",
+    deps = [
+      ":lib9",
+      ":libdraw",
+    ],
+    hdrs = [
+      "include/regexp.h",
+      "include/regexp9.h",
+    ],
+    srcs = [
+      "src/libregexp/lib9.h",
+      "src/libregexp/regaux.c",
+      "src/libregexp/regcomp.c",
+      "src/libregexp/regcomp.h",
+      "src/libregexp/regerror.c",
+      "src/libregexp/regexec.c",
+      "src/libregexp/regsub.c",
+      "src/libregexp/rregexec.c",
+      "src/libregexp/rregsub.c",
+    ],
+)
+
+p9p_library(
+    name = "libString",
+    hdrs = ["include/libString.h"],
+    deps = [
+      ":lib9",
+      ":libbio",
+    ],
+)
+
+p9p_library(
+    name = "libventi",
+    deps = [
+      ":lib9",
+      ":libbio",
+      ":libthread",
+      ":libsec",
+    ],
+)
+
+p9p_library(
+    name = "libsunrpc",
+    deps = [
+      ":lib9",
+      ":libip",
+      ":libthread",
+    ],
+    hdrs = [
+      "include/nfs3.h",
+      "include/sunrpc.h",
+    ],
+)
+
+p9p_binary("9import",   deps = [":lib9", ":libauth"])
+p9p_binary("9p",        deps = [":lib9", ":lib9pclient", ":libbio", ":libthread", ":libauth"])
+p9p_binary("9pserve",   deps = [":lib9", ":libthread"])
+p9p_binary("acmeevent", deps = [":lib9", ":libbio"])
+p9p_binary("ascii",     deps = [":lib9", ":libbio"])
+p9p_binary("auxclog",   deps = [":lib9", ":libbio"])
+p9p_binary("basename",  deps = [":lib9"])
+p9p_binary("cal",       deps = [":lib9", ":libbio"])
+p9p_binary("calendar",  deps = [":lib9", ":libbio", ":libregexp"])
+p9p_binary("cat",       deps = [":lib9"])
+p9p_binary("cleanname", deps = [":lib9"])
+p9p_binary("cmp",       deps = [":lib9"])
+p9p_binary("col",       deps = [":lib9", ":libbio"])
+p9p_binary("comm",      deps = [":lib9", ":libbio"])
+p9p_binary("core",      deps = [":lib9", ":libmach"])
+p9p_binary("date",      deps = [":lib9"])
+p9p_binary("dc",        deps = [":lib9", ":libbio"])
+p9p_binary("dd",        deps = [":lib9"])
+p9p_binary("deroff",    deps = [":lib9", ":libbio"])
+p9p_binary("dial",      deps = [":lib9"])
+p9p_binary("du",        deps = [":lib9"])
+p9p_binary("echo",      deps = [":lib9"])
+p9p_binary("ed",        deps = [":lib9", ":libbio", ":libregexp"])
+p9p_binary("factor",    deps = [":lib9", ":libbio"])
+p9p_binary("file",      deps = [":lib9", ":libbio", ":libmach"])
+p9p_binary("fmt",       deps = [":lib9", ":libbio"])
+p9p_binary("fortune",   deps = [":lib9", ":libbio"])
+p9p_binary("freq",      deps = [":lib9", ":libbio"])
+p9p_binary("fsize",     deps = [":lib9"])
+p9p_binary("getflags",  deps = [":lib9"])
+p9p_binary("hget",      deps = [":lib9", ":libbio", ":libip", ":libsec", ":libauth", ":libthread"])
+p9p_binary("hist",      deps = [":lib9"])
+p9p_binary("idiff",     deps = [":lib9", ":libbio"])
+p9p_binary("import",    deps = [":lib9", ":libregexp", ":libthread"])
+p9p_binary("join",      deps = [":lib9"])
+p9p_binary("listen1",   deps = [":lib9", ":libauth"])
+p9p_binary("look",      deps = [":lib9", ":libbio"])
+p9p_binary("ls",        deps = [":lib9", ":libbio"])
+p9p_binary("md5sum",    deps = [":lib9", ":libbio", ":libsec"])
+p9p_binary("mkdir",     deps = [":lib9"])
+p9p_binary("mtime",     deps = [":lib9"])
+p9p_binary("namespace", deps = [":lib9"])
+p9p_binary("netkey",    deps = [":lib9", ":libauthsrv", ":libsec"])
+p9p_binary("news",      deps = [":lib9", ":libbio"])
+p9p_binary("pbd",       deps = [":lib9"])
+p9p_binary("p",         deps = [":lib9", ":libbio"])
+p9p_binary("pr",        deps = [":lib9", ":libbio"])
+p9p_binary("primes",    deps = [":lib9", ":libbio"])
+p9p_binary("ramfs",     deps = [":lib9"])
+p9p_binary("read",      deps = [":lib9"])
+p9p_binary("readcons",  deps = [":lib9"])
+p9p_binary("resample",  deps = [":lib9", ":libdraw", ":libmemdraw"])
+p9p_binary("rm",        deps = [":lib9"])
+p9p_binary("sed",       deps = [":lib9", ":libbio", ":libregexp"])
+p9p_binary("seq",       deps = [":lib9"])
+p9p_binary("sftpcache", deps = [":lib9", ":libbio"])
+p9p_binary("sha1sum",   deps = [":lib9", ":libbio", ":libsec"])
+p9p_binary("sleep",     deps = [":lib9"])
+p9p_binary("sort",      deps = [":lib9", ":libbio"])
+p9p_binary("split",     deps = [":lib9", ":libbio", ":libregexp"])
+p9p_binary("srv",       deps = [":lib9", ":libauth"])
+p9p_binary("strings",   deps = [":lib9", ":libbio"])
+p9p_binary("sum",       deps = [":lib9"])
+p9p_binary("tail",      deps = [":lib9", ":libbio"])
+p9p_binary("tar",       deps = [":lib9", ":libString"])
+p9p_binary("tee",       deps = [":lib9"])
+p9p_binary("test",      deps = [":lib9"])
+p9p_binary("time",      deps = [":lib9"])
+p9p_binary("touch",     deps = [":lib9"])
+p9p_binary("tr",        deps = [":lib9"])
+p9p_binary("unicode",   deps = [":lib9", ":libbio"])
+p9p_binary("uniq",      deps = [":lib9", ":libbio"])
+p9p_binary("unutf",     deps = [":lib9", ":libbio"])
+p9p_binary("usage",     deps = [":lib9"])
+p9p_binary("wc",        deps = [":lib9"])
+p9p_binary("xd",        deps = [":lib9", ":libbio"])
+p9p_binary("yacc",      deps = [":lib9", ":libbio"])
+p9p_binary("zerotrunc", deps = [":lib9"])

@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_prefix")
+
+go_prefix("aqwari.net/cmd/gogive")
+
+go_binary(
+    name = "gogive",
+    srcs = ["gogive.go"],
+    visibility = ["//visibility:public"],
+)
+
+load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar", "pkg_deb")
+pkg_tar(
+    name = "bazel-bin",
+    strip_prefix = ".",
+    package_dir = "/usr/bin",
+    files = [":gogive"],
+    mode = "0755",
+)
+
+pkg_deb(
+    name = "gogive-debian",
+    architecture = "amd64",
+    data = ":bazel-bin",
+    homepage = "https://aqwari.net/cmd/gogive",
+    maintainer = "David Arroyo <droyo@aqwari.net>",
+    package = "gogive",
+    description = "gogive serves vanity import paths for Go programs.",
+    version = "0.1.0",
+)

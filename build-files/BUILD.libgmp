@@ -1,0 +1,289 @@
+# Builds GNU GMP, an arbitrary precision arithmetic lib. 
+
+package(default_visibility = ["//visibility:public"])
+
+arch_specific_sources = [
+  "msn/add_1.c",
+  "msn/addaddmul_1msb0.asm",
+  "msn/add.c",
+  "msn/addlsh1_n.asm",
+  "msn/addmul_1.asm",
+  "msn/addmul_2.asm",
+  "msn/add_n.asm",
+  "msn/addsub_n.c",
+  "msn/and_n.asm",
+  "msn/andn_n.asm",
+  "msn/bdiv_dbm1c.asm",
+  "msn/bdivmod.c",
+  "msn/binvert.c",
+  "msn/cmp.c",
+  "msn/com_n.asm",
+  "msn/copyd.asm",
+  "msn/copyi.asm",
+  "msn/dc_bdiv_q.c",
+  "msn/dc_bdiv_qr.c",
+  "msn/dc_divappr_q.c",
+  "msn/dc_div_q.c",
+  "msn/dc_div_qr.c",
+  "msn/dc_divrem_n.c",
+  "msn/dive_1.asm",
+  "msn/diveby3.c",
+  "msn/divexact.c",
+  "msn/divis.c",
+  "msn/divrem_1.asm",
+  "msn/divrem_2.asm",
+  "msn/divrem.c",
+  "msn/dump.c",
+  "msn/fib2_ui.c",
+  "msn/gcd_1.c",
+  "msn/gcd.c",
+  "msn/gcdext_1.c",
+  "msn/gcdext.c",
+  "msn/gcdext_lehmer.c",
+  "msn/gcdext_subdiv_step.c",
+  "msn/gcd_lehmer.c",
+  "msn/gcd_subdiv_step.c",
+  "msn/get_d.c",
+  "msn/get_str.c",
+  "msn/hamdist.asm",
+  "msn/hgcd2.c",
+  "msn/hgcd.c",
+  "msn/invert.c",
+  "msn/invert_limb.asm",
+  "msn/ior_n.asm",
+  "msn/iorn_n.asm",
+  "msn/jacbase.c",
+  "msn/lshift.asm",
+  "msn/matrix22_mul.c",
+  "msn/mod_1_1.c",
+  "msn/mod_1_2.c",
+  "msn/mod_1_3.c",
+  "msn/mod_1_4.c",
+  "msn/mod_1.c",
+  "msn/mod_34lsub1.asm",
+  "msn/mode1o.asm",
+  "msn/mu_bdiv_q.c",
+  "msn/mu_bdiv_qr.c",
+  "msn/mu_divappr_q.c",
+  "msn/mu_div_q.c",
+  "msn/mu_div_qr.c",
+  "msn/mul_1.asm",
+  "msn/mul_2.asm",
+  "msn/mul_basecase.asm",
+  "msn/mul.c",
+  "msn/mul_fft.c",
+  "msn/mullow_basecase.c",
+  "msn/mullow_n.c",
+  "msn/mul_n.c",
+  "msn/nand_n.asm",
+  "msn/neg_n.c",
+  "msn/nior_n.asm",
+  "msn/perfsqr.c",
+  "msn/popcount.asm",
+  "msn/pow_1.c",
+  "msn/powlo.c",
+  "msn/powm.c",
+  "msn/powm_sec.c",
+  "msn/pre_mod_1.c",
+  "msn/random2.c",
+  "msn/random.c",
+  "msn/redc_1.asm",
+  "msn/redc_2.c",
+  "msn/rootrem.c",
+  "msn/rsh1add_n.asm",
+  "msn/rsh1sub_n.asm",
+  "msn/rshift.asm",
+  "msn/sb_bdiv_q.c",
+  "msn/sb_bdiv_qr.c",
+  "msn/sb_divappr_q.c",
+  "msn/sb_div_q.c",
+  "msn/sb_div_qr.c",
+  "msn/sb_divrem_mn.c",
+  "msn/scan0.c",
+  "msn/scan1.c",
+  "msn/set_str.c",
+  "msn/sqr_basecase.asm",
+  "msn/sqrtrem.c",
+  "msn/sub_1.c",
+  "msn/sub.c",
+  "msn/subcnd_n.c",
+  "msn/sublsh1_n.asm",
+  "msn/submul_1.asm",
+  "msn/sub_n.asm",
+  "msn/tdiv_qr.c",
+  "msn/toom22_mul.c",
+  "msn/toom2_sqr.c",
+  "msn/toom32_mul.c",
+  "msn/toom33_mul.c",
+  "msn/toom3_sqr.c",
+  "msn/toom42_mul.c",
+  "msn/toom44_mul.c",
+  "msn/toom4_sqr.c",
+  "msn/toom53_mul.c",
+  "msn/toom62_mul.c",
+  "msn/toom_interpolate_5pts.c",
+  "msn/toom_interpolate_7pts.c",
+  "msn/xnor_n.asm",
+  "msn/xor_n.asm",
+]
+
+generated_headers = [
+    "gmp.h",
+    "mp.h",
+    "config.h",
+    "gmp-mparam.h"
+]
+
+genrule(
+  name = "autoconf",
+  cmd = "M4=/bin/true ./$(location configure)",
+  tools = ["configure"],
+  outs = generated_headers,
+  local = 1,
+)
+
+filegroup(
+  name = "sources",
+  srcs = glob(
+      include=["**/*.c"],
+      exclude=["mpn/*", "tests/*"]
+  ),
+)
+
+filegroup(
+  name = "includes",
+  srcs = generated_headers + glob(["*.h"]),
+)
+
+cc_library(
+  name = "libgmp",
+  hdrs = ["gmp.h"],
+  srcs = [":sources", ":includes"],
+)
+
+# config.status: creating gmp.h
+# config.status: creating mp.h
+# config.status: creating config.h
+# config.status: linking ./mpn/generic/add.c to mpn/add.c
+# config.status: linking ./mpn/generic/add_1.c to mpn/add_1.c
+# config.status: linking ./mpn/x86_64/aors_n.asm to mpn/add_n.asm
+# config.status: linking ./mpn/generic/sub.c to mpn/sub.c
+# config.status: linking ./mpn/generic/sub_1.c to mpn/sub_1.c
+# config.status: linking ./mpn/x86_64/aors_n.asm to mpn/sub_n.asm
+# config.status: linking ./mpn/generic/neg_n.c to mpn/neg_n.c
+# config.status: linking ./mpn/x86_64/mul_1.asm to mpn/mul_1.asm
+# config.status: linking ./mpn/x86_64/aorsmul_1.asm to mpn/addmul_1.asm
+# config.status: linking ./mpn/x86_64/aorsmul_1.asm to mpn/submul_1.asm
+# config.status: linking ./mpn/x86_64/lshift.asm to mpn/lshift.asm
+# config.status: linking ./mpn/x86_64/rshift.asm to mpn/rshift.asm
+# config.status: linking ./mpn/x86_64/dive_1.asm to mpn/dive_1.asm
+# config.status: linking ./mpn/generic/diveby3.c to mpn/diveby3.c
+# config.status: linking ./mpn/generic/divis.c to mpn/divis.c
+# config.status: linking ./mpn/generic/divrem.c to mpn/divrem.c
+# config.status: linking ./mpn/x86_64/divrem_1.asm to mpn/divrem_1.asm
+# config.status: linking ./mpn/x86_64/divrem_2.asm to mpn/divrem_2.asm
+# config.status: linking ./mpn/generic/fib2_ui.c to mpn/fib2_ui.c
+# config.status: linking ./mpn/generic/mod_1.c to mpn/mod_1.c
+# config.status: linking ./mpn/x86_64/mod_34lsub1.asm to mpn/mod_34lsub1.asm
+# config.status: linking ./mpn/x86_64/mode1o.asm to mpn/mode1o.asm
+# config.status: linking ./mpn/generic/pre_mod_1.c to mpn/pre_mod_1.c
+# config.status: linking ./mpn/generic/dump.c to mpn/dump.c
+# config.status: linking ./mpn/generic/mod_1_1.c to mpn/mod_1_1.c
+# config.status: linking ./mpn/generic/mod_1_2.c to mpn/mod_1_2.c
+# config.status: linking ./mpn/generic/mod_1_3.c to mpn/mod_1_3.c
+# config.status: linking ./mpn/generic/mod_1_4.c to mpn/mod_1_4.c
+# config.status: linking ./mpn/generic/mul.c to mpn/mul.c
+# config.status: linking ./mpn/generic/mul_fft.c to mpn/mul_fft.c
+# config.status: linking ./mpn/generic/mul_n.c to mpn/mul_n.c
+# config.status: linking ./mpn/x86_64/mul_basecase.asm to mpn/mul_basecase.asm
+# config.status: linking ./mpn/x86_64/sqr_basecase.asm to mpn/sqr_basecase.asm
+# config.status: linking ./mpn/generic/random.c to mpn/random.c
+# config.status: linking ./mpn/generic/random2.c to mpn/random2.c
+# config.status: linking ./mpn/generic/pow_1.c to mpn/pow_1.c
+# config.status: linking ./mpn/generic/rootrem.c to mpn/rootrem.c
+# config.status: linking ./mpn/generic/sqrtrem.c to mpn/sqrtrem.c
+# config.status: linking ./mpn/generic/get_str.c to mpn/get_str.c
+# config.status: linking ./mpn/generic/set_str.c to mpn/set_str.c
+# config.status: linking ./mpn/generic/scan0.c to mpn/scan0.c
+# config.status: linking ./mpn/generic/scan1.c to mpn/scan1.c
+# config.status: linking ./mpn/x86_64/popham.asm to mpn/popcount.asm
+# config.status: linking ./mpn/x86_64/popham.asm to mpn/hamdist.asm
+# config.status: linking ./mpn/generic/cmp.c to mpn/cmp.c
+# config.status: linking ./mpn/generic/perfsqr.c to mpn/perfsqr.c
+# config.status: linking ./mpn/generic/bdivmod.c to mpn/bdivmod.c
+# config.status: linking ./mpn/generic/gcd_1.c to mpn/gcd_1.c
+# config.status: linking ./mpn/generic/gcd.c to mpn/gcd.c
+# config.status: linking ./mpn/generic/gcdext_1.c to mpn/gcdext_1.c
+# config.status: linking ./mpn/generic/gcdext.c to mpn/gcdext.c
+# config.status: linking ./mpn/generic/gcd_lehmer.c to mpn/gcd_lehmer.c
+# config.status: linking ./mpn/generic/gcd_subdiv_step.c to mpn/gcd_subdiv_step.c
+# config.status: linking ./mpn/generic/gcdext_lehmer.c to mpn/gcdext_lehmer.c
+# config.status: linking ./mpn/generic/gcdext_subdiv_step.c to mpn/gcdext_subdiv_step.c
+# config.status: linking ./mpn/generic/tdiv_qr.c to mpn/tdiv_qr.c
+# config.status: linking ./mpn/generic/dc_divrem_n.c to mpn/dc_divrem_n.c
+# config.status: linking ./mpn/generic/sb_divrem_mn.c to mpn/sb_divrem_mn.c
+# config.status: linking ./mpn/generic/jacbase.c to mpn/jacbase.c
+# config.status: linking ./mpn/generic/get_d.c to mpn/get_d.c
+# config.status: linking ./mpn/generic/matrix22_mul.c to mpn/matrix22_mul.c
+# config.status: linking ./mpn/generic/hgcd2.c to mpn/hgcd2.c
+# config.status: linking ./mpn/generic/hgcd.c to mpn/hgcd.c
+# config.status: linking ./mpn/generic/mullow_n.c to mpn/mullow_n.c
+# config.status: linking ./mpn/generic/mullow_basecase.c to mpn/mullow_basecase.c
+# config.status: linking ./mpn/generic/toom22_mul.c to mpn/toom22_mul.c
+# config.status: linking ./mpn/generic/toom33_mul.c to mpn/toom33_mul.c
+# config.status: linking ./mpn/generic/toom44_mul.c to mpn/toom44_mul.c
+# config.status: linking ./mpn/generic/toom32_mul.c to mpn/toom32_mul.c
+# config.status: linking ./mpn/generic/toom42_mul.c to mpn/toom42_mul.c
+# config.status: linking ./mpn/generic/toom62_mul.c to mpn/toom62_mul.c
+# config.status: linking ./mpn/generic/toom53_mul.c to mpn/toom53_mul.c
+# config.status: linking ./mpn/generic/toom2_sqr.c to mpn/toom2_sqr.c
+# config.status: linking ./mpn/generic/toom3_sqr.c to mpn/toom3_sqr.c
+# config.status: linking ./mpn/generic/toom4_sqr.c to mpn/toom4_sqr.c
+# config.status: linking ./mpn/generic/toom_interpolate_5pts.c to mpn/toom_interpolate_5pts.c
+# config.status: linking ./mpn/generic/toom_interpolate_7pts.c to mpn/toom_interpolate_7pts.c
+# config.status: linking ./mpn/generic/invert.c to mpn/invert.c
+# config.status: linking ./mpn/generic/binvert.c to mpn/binvert.c
+# config.status: linking ./mpn/generic/sb_div_qr.c to mpn/sb_div_qr.c
+# config.status: linking ./mpn/generic/sb_divappr_q.c to mpn/sb_divappr_q.c
+# config.status: linking ./mpn/generic/sb_div_q.c to mpn/sb_div_q.c
+# config.status: linking ./mpn/generic/dc_div_qr.c to mpn/dc_div_qr.c
+# config.status: linking ./mpn/generic/dc_divappr_q.c to mpn/dc_divappr_q.c
+# config.status: linking ./mpn/generic/dc_div_q.c to mpn/dc_div_q.c
+# config.status: linking ./mpn/generic/mu_div_qr.c to mpn/mu_div_qr.c
+# config.status: linking ./mpn/generic/mu_divappr_q.c to mpn/mu_divappr_q.c
+# config.status: linking ./mpn/generic/mu_div_q.c to mpn/mu_div_q.c
+# config.status: linking ./mpn/generic/sb_bdiv_q.c to mpn/sb_bdiv_q.c
+# config.status: linking ./mpn/generic/sb_bdiv_qr.c to mpn/sb_bdiv_qr.c
+# config.status: linking ./mpn/generic/dc_bdiv_q.c to mpn/dc_bdiv_q.c
+# config.status: linking ./mpn/generic/dc_bdiv_qr.c to mpn/dc_bdiv_qr.c
+# config.status: linking ./mpn/generic/mu_bdiv_q.c to mpn/mu_bdiv_q.c
+# config.status: linking ./mpn/generic/mu_bdiv_qr.c to mpn/mu_bdiv_qr.c
+# config.status: linking ./mpn/generic/divexact.c to mpn/divexact.c
+# config.status: linking ./mpn/x86_64/bdiv_dbm1c.asm to mpn/bdiv_dbm1c.asm
+# config.status: linking ./mpn/x86_64/redc_1.asm to mpn/redc_1.asm
+# config.status: linking ./mpn/generic/redc_2.c to mpn/redc_2.c
+# config.status: linking ./mpn/generic/powm.c to mpn/powm.c
+# config.status: linking ./mpn/generic/powlo.c to mpn/powlo.c
+# config.status: linking ./mpn/generic/powm_sec.c to mpn/powm_sec.c
+# config.status: linking ./mpn/generic/subcnd_n.c to mpn/subcnd_n.c
+# config.status: linking ./mpn/x86_64/copyi.asm to mpn/copyi.asm
+# config.status: linking ./mpn/x86_64/copyd.asm to mpn/copyd.asm
+# config.status: linking ./mpn/x86_64/com_n.asm to mpn/com_n.asm
+# config.status: linking ./mpn/x86_64/logops_n.asm to mpn/and_n.asm
+# config.status: linking ./mpn/x86_64/logops_n.asm to mpn/andn_n.asm
+# config.status: linking ./mpn/x86_64/logops_n.asm to mpn/nand_n.asm
+# config.status: linking ./mpn/x86_64/logops_n.asm to mpn/ior_n.asm
+# config.status: linking ./mpn/x86_64/logops_n.asm to mpn/iorn_n.asm
+# config.status: linking ./mpn/x86_64/logops_n.asm to mpn/nior_n.asm
+# config.status: linking ./mpn/x86_64/logops_n.asm to mpn/xor_n.asm
+# config.status: linking ./mpn/x86_64/logops_n.asm to mpn/xnor_n.asm
+# config.status: linking ./mpn/x86_64/invert_limb.asm to mpn/invert_limb.asm
+# config.status: linking ./mpn/x86_64/mul_2.asm to mpn/mul_2.asm
+# config.status: linking ./mpn/x86_64/addmul_2.asm to mpn/addmul_2.asm
+# config.status: linking ./mpn/x86_64/addlsh1_n.asm to mpn/addlsh1_n.asm
+# config.status: linking ./mpn/x86_64/sublsh1_n.asm to mpn/sublsh1_n.asm
+# config.status: linking ./mpn/x86_64/rsh1add_n.asm to mpn/rsh1add_n.asm
+# config.status: linking ./mpn/x86_64/rsh1sub_n.asm to mpn/rsh1sub_n.asm
+# config.status: linking ./mpn/generic/addsub_n.c to mpn/addsub_n.c
+# config.status: linking ./mpn/x86_64/addaddmul_1msb0.asm to mpn/addaddmul_1msb0.asm
+# config.status: linking ./mpn/x86_64/gmp-mparam.h to gmp-mparam.h

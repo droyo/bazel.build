@@ -1,7 +1,10 @@
 # Builds Plan 9 from user space
 package(default_visibility = ["//visibility:private"])
 
-load("@build_tools//:plan9port.bzl", "p9p_library", "p9p_binary")
+load("@build_tools//:plan9port.bzl", 
+     "p9p_library",
+     "p9p_binary",
+     "p9p_yacc")
 
 p9p_library(
     name = "libsec",
@@ -61,6 +64,7 @@ p9p_library(
       "src/libsec/port/sha1.c",
       "src/libsec/port/sha1pickle.c",
       "src/libsec/port/smallprimes.c",
+      "src/libsec/port/smallprimetest.c",
       "src/libsec/port/thumb.c",
       "src/libsec/port/tlshand.c",
       "src/libsec/port/x509.c",
@@ -647,5 +651,200 @@ p9p_binary("unutf",     deps = [":lib9", ":libbio"])
 p9p_binary("usage",     deps = [":lib9"])
 p9p_binary("wc",        deps = [":lib9"])
 p9p_binary("xd",        deps = [":lib9", ":libbio"])
-p9p_binary("yacc",      deps = [":lib9", ":libbio"])
 p9p_binary("zerotrunc", deps = [":lib9"])
+
+p9p_binary(
+    name = "plumb",
+    deps = [
+      ":lib9",
+      ":lib9pclient",
+      ":libplumb",
+    ],
+    srcs = ["src/cmd/plumb/plumb.c"],
+)
+
+p9p_binary(
+    name = "plumber",
+    deps = [
+      ":lib9",
+      ":libbio",
+      ":libplumb",
+      ":libregexp",
+      ":libthread",
+    ],
+    srcs = glob(
+      include=["src/cmd/plumb/*.c", "src/cmd/plumb/*.h"],
+      exclude=["src/cmd/plumb/plumb.c"],
+    ),
+)
+
+p9p_binary(
+    name = "9pfuse",
+    deps = [
+      ":lib9",
+      ":lib9pclient",
+      ":libthread",
+    ],
+)
+
+p9p_binary(
+    name = "9term",
+    deps = [
+      ":lib9",
+      ":libcomplete",
+      ":libdraw",
+      ":libframe",
+      ":libplumb",
+      ":libthread",
+    ],
+    srcs = [
+      "src/cmd/9term/9term.c",
+      "src/cmd/9term/bsdpty.c",
+      "src/cmd/9term/data.c",
+      "src/cmd/9term/dat.h",
+      "src/cmd/9term/fns.h",
+      "src/cmd/9term/Linux.c",
+      "src/cmd/9term/rcstart.c",
+      "src/cmd/9term/scrl.c",
+      "src/cmd/9term/term.h",
+      "src/cmd/9term/time.c",
+      "src/cmd/9term/util.c",
+      "src/cmd/9term/wind.c",
+    ],
+)
+
+p9p_binary(
+    name = "win",
+    deps = [
+      ":lib9",
+      ":lib9pclient",
+      ":libthread",
+    ],
+    srcs = [
+      "src/cmd/9term/win.c",
+      "src/cmd/9term/term.h",
+    ],
+)
+
+p9p_binary(
+    name = "yacc",
+    deps = [":lib9", ":libbio"],
+    data = [
+      "lib/yaccpar",
+      "lib/yaccpars",
+    ],
+)
+
+p9p_yacc(
+    name = "lex_parser_y",
+    file = "src/cmd/lex/parser.y",
+)
+
+genrule(
+    name = "lex.ncform",
+    srcs = ["src/cmd/lex/ncform"],
+    outs = ["lib/lex.ncform"],
+    cmd = "cp $< $@",
+)
+
+p9p_binary(
+    name = "lex",
+    deps = [
+      ":lib9",
+      ":libbio",
+    ],
+    srcs = glob([
+      "src/cmd/lex/*.c",
+      "src/cmd/lex/*.h",
+    ]) + [
+      ":lex_parser_y"
+    ],
+    data = ["src/cmd/lex/ncform"],
+)
+
+filegroup(
+    name = "acid_modules",
+    srcs = glob(
+      include=["acid/**"],
+      exclude=["acid/transcript", "acid/window"],
+    ),
+)
+
+p9p_yacc(
+    name = 'acid_dbg_y',
+    file = 'src/cmd/acid/dbg.y',
+)
+
+p9p_binary(
+    name = "acid",
+    deps = [
+      ":lib9",
+      ":libbio",
+      ":libmach",
+      ":libregexp",
+    ],
+    srcs = glob([
+      "src/cmd/acid/*.c",
+      "src/cmd/acid/*.h",
+    ]) + [
+      ":acid_dbg_y",
+    ],
+    data = [":acid_modules"],
+)
+
+p9p_binary(
+    name = "acidtypes",
+    deps = [
+      ":lib9",
+      ":libbio",
+      ":libmach",
+    ],
+)
+
+p9p_binary(
+    name = "acme",
+    deps = [
+      ":lib9",
+      ":lib9pclient",
+      ":libbio",
+      ":libcomplete",
+      ":libdraw",
+      ":libframe",
+      ":libplumb",
+      ":libregexp",
+      ":libthread",
+    ],
+)
+
+p9p_binary(
+    name = "astro",
+    deps = [":lib9"],
+    data = ["sky/estartab", "sky/constelnames"],
+)
+
+p9p_binary(
+    name = "factotum",
+    deps = [
+      ":lib9",
+      ":lib9p",
+      ":lib9pclient",
+      ":libauth",
+      ":libauthsrv",
+      ":libbio",
+      ":libip",
+      ":libmp",
+      ":libsec",
+      ":libthread",
+    ],
+    srcs = glob(
+      include=[
+        "src/cmd/auth/factotum/*.c",
+        "src/cmd/auth/factotum/*.h",
+      ],
+      exclude=[
+        "src/cmd/auth/factotum/cpu.c",
+        "src/cmd/auth/factotum/test.c",
+        "src/cmd/auth/factotum/x.c",
+      ],
+    ),
+)

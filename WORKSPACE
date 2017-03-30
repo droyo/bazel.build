@@ -8,6 +8,16 @@ local_repository(
 
 # GCC prerequisites - version numbers copied from the download_prerequisite
 # script of the chosen GCC version.
+
+# This is needed to build GMP and GCC
+new_http_archive (
+    name = "m4",
+    urls = ["http://ftpmirror.gnu.org/gnu/m4/m4-1.4.17.tar.xz"],
+    sha256 = "f0543c3beb51fa6b3337d8025331591e0e18d8ec2886ed391f1aade43477d508",
+    strip_prefix = "m4-1.4.17",
+    build_file = "build-files/BUILD.m4",
+)
+
 new_http_archive (
     name = "libgmp",
     urls = ["http://ftpmirror.gnu.org/gnu/gmp/gmp-4.3.2.tar.gz"],
